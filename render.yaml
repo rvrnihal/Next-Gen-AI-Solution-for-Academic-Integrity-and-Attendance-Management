@@ -1,0 +1,34 @@
+services:
+  # 1. AI Service (FastAPI)
+  - type: web
+    name: aegis-ai-service
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    rootDir: ai-service
+    plan: free
+
+  # 2. Backend API Service (Node/Express/TypeScript)
+  - type: web
+    name: aegis-backend
+    env: node
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    rootDir: backend
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aegis-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_SERVICE_URL
+        fromService:
+          name: aegis-ai-service
+          type: web
+          property: host
+
+databases:
+  - name: aegis-db
+    plan: free

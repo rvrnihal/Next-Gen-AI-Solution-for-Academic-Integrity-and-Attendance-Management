@@ -1,0 +1,107 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  HOD
+  PRINCIPAL
+  ADMIN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum AttendanceMethod {
+  BARCODE
+  QR
+  FACE
+  GPS
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  passwordHash    String
+  name            String
+  role            Role             @default(STUDENT)
+  avatarUrl       String?
+  createdAt       DateTime         @default(now())
+  studentProfile  StudentProfile?
+  facultyProfile  FacultyProfile?
+  auditLogs       AuditLog[]
+}
+
+model StudentProfile {
+  id              String              @id @default(uuid())
+  userId          String              @unique
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollNumber      String              @unique
+  faceEmbedding   String?             // JSON representation of embedding vector
+  attendance      AttendanceRecord[]
+  malpracticeLogs MalpracticeLog[]
+}
+
+model FacultyProfile {
+  id              String              @id @default(uuid())
+  userId          String              @unique
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId      String              @unique
+  sessions        ClassSession[]
+}
+
+model ClassSession {
+  id              String              @id @default(uuid())
+  facultyId       String
+  faculty         FacultyProfile      @relation(fields: [facultyId], references: [id])
+  subjectName     String
+  startTime       DateTime
+  endTime         DateTime
+  qrSecret        String?             // For dynamic QR code codes
+  gpsLatitude     Float?
+  gpsLongitude    Float?
+  geofenceRadius  Float?              // In meters
+  attendance      AttendanceRecord[]
+  malpracticeLogs MalpracticeLog[]
+}
+
+model AttendanceRecord {
+  id              String              @id @default(uuid())
+  studentId       String
+  student         StudentProfile      @relation(fields: [studentId], references: [id])
+  sessionId       String
+  session         ClassSession        @relation(fields: [sessionId], references: [id])
+  timestamp       DateTime            @default(now())
+  status          AttendanceStatus    @default(PRESENT)
+  method          AttendanceMethod
+}
+
+model MalpracticeLog {
+  id              String              @id @default(uuid())
+  studentId       String
+  student         StudentProfile      @relation(fields: [studentId], references: [id])
+  sessionId       String
+  session         ClassSession        @relation(fields: [sessionId], references: [id])
+  timestamp       DateTime            @default(now())
+  incidentType    String              // e.g. "MOBILE_PHONE", "SUSPICIOUS"
+  confidence      Float
+  snapshotUrl     String?
+}
+
+model AuditLog {
+  id              String              @id @default(uuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id])
+  action          String
+  ipAddress       String
+  timestamp       DateTime            @default(now())
+}

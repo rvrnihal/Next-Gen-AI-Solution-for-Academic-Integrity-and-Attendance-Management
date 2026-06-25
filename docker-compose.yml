@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aegis-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: academic_integrity
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: aegis-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    container_name: aegis-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/academic_integrity?schema=public
+      - JWT_SECRET=super-secret-key-change-in-production
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - postgres
+      - redis
+
+  ai-service:
+    build: ./ai-service
+    container_name: aegis-ai-service
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:

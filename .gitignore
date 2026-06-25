@@ -1,0 +1,42 @@
+# Monorepo Dependencies
+node_modules/
+venv/
+.next/
+dist/
+build/
+C:/Temp/aegis-next/
+C:\Temp\aegis-next/
+aegis-build/
+
+# Python caching & artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+*.pt
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System & Editor Metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
