@@ -29,6 +29,23 @@ services:
           type: web
           property: host
 
+  # 3. Next.js Frontend Web Application
+  - type: web
+    name: aegis-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    rootDir: frontend
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: aegis-backend
+          type: web
+          property: host
+      - key: PORT
+        value: 3000
+
 databases:
   - name: aegis-db
     plan: free
